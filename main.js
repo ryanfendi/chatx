@@ -6,6 +6,8 @@ let players = {};
 let avatarType = localStorage.getItem("avatarType") || "pria";
 let coin = parseInt(localStorage.getItem("coin")) || 100;
 let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+let playerName = localStorage.getItem("playerName") || prompt("Masukkan nama kamu:") || "Anonim";
+localStorage.setItem("playerName", playerName);
 
 const config = {
   type: Phaser.AUTO,
@@ -28,20 +30,22 @@ const game = new Phaser.Game(config);
 function preload() {
   this.load.image("pria", "https://i.imgur.com/uQaaapA.png");
   this.load.image("wanita", "https://i.imgur.com/bMolfpy.png");
+  this.load.image("gachaBox", "https://i.imgur.com/TsdSF8x.png"); // Icon gacha box
 }
 
 function create() {
   this.chatBubbles = {};
+  this.nameTags = {};
   this.cursors = this.input.keyboard.createCursorKeys();
 
   socket.on("init", (id) => {
     playerId = id;
-    // Jika user punya avatar wanita, pakai otomatis
     if (inventory.includes("avatar_wanita")) {
       avatarType = "wanita";
       localStorage.setItem("avatarType", "wanita");
     }
     socket.emit("avatarType", avatarType);
+    socket.emit("playerName", playerName);
   });
 
   socket.on("state", (serverPlayers) => {
@@ -49,6 +53,7 @@ function create() {
       if (!serverPlayers[id]) {
         players[id].avatar.destroy();
         players[id].bubble.destroy();
+        this.nameTags[id]?.destroy();
         delete players[id];
       }
     }
@@ -66,12 +71,20 @@ function create() {
           padding: { x: 5, y: 2 }
         }).setOrigin(0.5).setVisible(false);
 
+        const nameTag = this.add.text(data.x, data.y - 60, data.name || "Anonim", {
+          font: "14px Arial",
+          fill: "#0f0"
+        }).setOrigin(0.5);
+
         players[id] = { avatar, bubble };
+        this.nameTags[id] = nameTag;
       } else {
         players[id].avatar.x = data.x;
         players[id].avatar.y = data.y;
         players[id].bubble.x = data.x;
         players[id].bubble.y = data.y - 40;
+        this.nameTags[id].x = data.x;
+        this.nameTags[id].y = data.y - 60;
       }
     }
   });
@@ -86,7 +99,6 @@ function create() {
     }
   });
 
-  // Chat form
   const form = document.getElementById("chatForm");
   const input = document.getElementById("chatInput");
   form.addEventListener("submit", (e) => {
@@ -98,23 +110,18 @@ function create() {
     }
   });
 
-  // Emote keyboard
   this.input.keyboard.on("keydown", (event) => {
     const player = players[playerId];
     if (!player) return;
 
     if (event.key === "1") {
       player.avatar.y -= 50;
-      setTimeout(() => {
-        player.avatar.y += 50;
-      }, 300);
+      setTimeout(() => player.avatar.y += 50, 300);
     }
-
     if (event.key === "2" && inventory.includes("emote_wave")) {
       player.avatar.setAngle(15);
       setTimeout(() => player.avatar.setAngle(0), 300);
     }
-
     if (event.key === "3" && inventory.includes("emote_dance")) {
       let i = 0;
       const interval = setInterval(() => {
@@ -127,6 +134,10 @@ function create() {
       }, 100);
     }
   });
+
+  // Gacha animasi sederhana
+  const gacha = this.add.image(60, 550, "gachaBox").setInteractive().setScale(0.5);
+  gacha.on("pointerdown", () => openBox(20));
 }
 
 function update() {
@@ -150,7 +161,6 @@ function update() {
   }
 }
 
-// Buy Item Function (dipakai di HTML juga)
 function buyItem(item, cost) {
   if (inventory.includes(item)) {
     alert("Sudah dibeli!");
@@ -171,4 +181,22 @@ function buyItem(item, cost) {
     localStorage.setItem("avatarType", "wanita");
     location.reload();
   }
+}
+
+function openBox(cost) {
+  if (coin < cost) {
+    alert("Koin tidak cukup!");
+    return;
+  }
+
+  coin -= cost;
+  document.getElementById("coinCount").innerText = coin;
+  localStorage.setItem("coin", coin);
+
+  const rewards = ["emote_wave", "emote_dance", "avatar_wanita"];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+  if (!inventory.includes(reward)) inventory.push(reward);
+  localStorage.setItem("inventory", JSON.stringify(inventory));
+  alert("Kamu mendapatkan: " + reward);
 }

@@ -30,7 +30,7 @@ const game = new Phaser.Game(config);
 function preload() {
   this.load.image("pria", "https://i.imgur.com/uQaaapA.png");
   this.load.image("wanita", "https://i.imgur.com/bMolfpy.png");
-  this.load.image("gachaBox", "https://i.imgur.com/TsdSF8x.png"); // Icon gacha box
+  this.load.image("gachaBox", "https://i.imgur.com/lpIlr0E.png"); // Icon gacha box
 }
 
 function create() {

@@ -31,9 +31,11 @@ function preload() {
 function create() {
   this.chatBubbles = {};
 
-  socket.on("init", (id) => {
-    playerId = id;
-  });
+ socket.on("init", (id) => {
+  playerId = id;
+  socket.emit("avatarType", avatarType); // PENTING!
+});
+
 
   socket.on("state", (serverPlayers) => {
     for (const id in serverPlayers) {
@@ -99,9 +101,9 @@ function update() {
 
   if (moved) {
     socket.emit("move", {
-      x: player.avatar.x,
-      y: player.avatar.y,
-      avatarType: avatarType
-    });
+  x: player.avatar.x,
+  y: player.avatar.y
+});
+
   }
 }

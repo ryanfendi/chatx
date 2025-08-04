@@ -1,3 +1,4 @@
+// main.js
 const socket = io("https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev");
 
 let playerId;
@@ -7,6 +8,7 @@ let coin = parseInt(localStorage.getItem("coin")) || 100;
 let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
 let playerName = localStorage.getItem("playerName") || prompt("Masukkan nama kamu:") || "Anonim";
 localStorage.setItem("playerName", playerName);
+
 document.getElementById("coinCount")?.innerText = coin;
 
 const config = {
@@ -14,8 +16,15 @@ const config = {
   width: 800,
   height: 600,
   backgroundColor: "#222",
-  physics: { default: "arcade", arcade: { gravity: { y: 0 } } },
-  scene: { preload, create, update }
+  physics: {
+    default: "arcade",
+    arcade: { gravity: { y: 0 } }
+  },
+  scene: {
+    preload,
+    create,
+    update
+  }
 };
 
 const game = new Phaser.Game(config);
@@ -31,14 +40,10 @@ function create() {
   this.nameTags = {};
   this.cursors = this.input.keyboard.createCursorKeys();
 
+  socket.emit("join", { name: playerName, avatarType });
+
   socket.on("init", (id) => {
     playerId = id;
-    if (inventory.includes("avatar_wanita")) {
-      avatarType = "wanita";
-      localStorage.setItem("avatarType", "wanita");
-    }
-    socket.emit("avatarType", avatarType);
-    socket.emit("playerName", playerName);
   });
 
   socket.on("state", (serverPlayers) => {
@@ -53,6 +58,7 @@ function create() {
 
     for (const id in serverPlayers) {
       const data = serverPlayers[id];
+
       if (!players[id]) {
         const avatarImg = data.avatarType || "pria";
         const avatar = this.add.sprite(data.x, data.y, avatarImg).setScale(2);
@@ -62,6 +68,7 @@ function create() {
           backgroundColor: "#000",
           padding: { x: 5, y: 2 }
         }).setOrigin(0.5).setVisible(false);
+
         const nameTag = this.add.text(data.x, data.y - 60, data.name || "Anonim", {
           font: "14px Arial",
           fill: "#0f0"
@@ -152,9 +159,14 @@ function update() {
 }
 
 function buyItem(item, cost) {
-  if (inventory.includes(item)) return alert("Sudah dibeli!");
-  if (coin < cost) return alert("Koin tidak cukup!");
-
+  if (inventory.includes(item)) {
+    alert("Sudah dibeli!");
+    return;
+  }
+  if (coin < cost) {
+    alert("Koin tidak cukup!");
+    return;
+  }
   coin -= cost;
   inventory.push(item);
   localStorage.setItem("coin", coin);
@@ -169,14 +181,18 @@ function buyItem(item, cost) {
 }
 
 function openBox(cost) {
-  if (coin < cost) return alert("Koin tidak cukup!");
+  if (coin < cost) {
+    alert("Koin tidak cukup!");
+    return;
+  }
 
   coin -= cost;
-  localStorage.setItem("coin", coin);
   document.getElementById("coinCount").innerText = coin;
+  localStorage.setItem("coin", coin);
 
   const rewards = ["emote_wave", "emote_dance", "avatar_wanita"];
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
   if (!inventory.includes(reward)) inventory.push(reward);
   localStorage.setItem("inventory", JSON.stringify(inventory));
   alert("Kamu mendapatkan: " + reward);

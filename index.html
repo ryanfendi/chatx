@@ -57,6 +57,18 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    #emoteLabel {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 14px;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -74,7 +86,6 @@
     </form>
   </div>
 
-  <!-- Tombol Menu -->
   <button onclick="toggleShop()" style="position: fixed; top: 10px; right: 10px; z-index: 9999;">🛒 Shop</button>
   <button onclick="toggleInventory()" style="position: fixed; top: 10px; right: 100px; z-index: 9999;">🎒 Inventory</button>
   <button onclick="toggleMarket()" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">📜 Market Player</button>
@@ -83,15 +94,13 @@
   <button onclick="toggleGachaBox()" style="position: fixed; bottom: 60px; right: 10px; z-index: 9999;">🎮 Gacha</button>
   <button onclick="viewProfile()" style="position: fixed; bottom: 60px; left: 10px; z-index: 9999;">🧑‍⚖️ Profil</button>
 
-  <!-- Gacha Modal -->
   <div id="gachaModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#111; color:white; padding:20px; border-radius:10px; z-index:9999; text-align:center;">
     <h3>Gacha Box</h3>
     <p>20 koin per gacha</p>
     <button onclick="runGacha()">Putar Gacha!</button>
-    <div id="gachaResult"></div>
+    <div id="gachaResult" style="margin-top:10px; font-size:18px;"></div>
   </div>
 
-  <!-- Profil -->
   <div id="profileUI" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#333; color:white; padding:20px; border-radius:10px; z-index:9999;">
     <h3>Profil Kamu</h3>
     <p>ID: <span id="profileId"></span></p>
@@ -100,7 +109,19 @@
     <button onclick="document.getElementById('profileUI').style.display='none'">Tutup</button>
   </div>
 
+  <div id="emoteLabel">[1] Wave | [2] Dance</div>
+
   <script>
+    function selectAvatar(type) {
+      localStorage.setItem("avatarType", type);
+      document.getElementById("avatarSelect").style.display = "none";
+      location.reload();
+    }
+
+    if (localStorage.getItem("avatarType")) {
+      document.getElementById("avatarSelect").style.display = "none";
+    }
+
     function toggleGachaBox() {
       document.getElementById("gachaModal").style.display = "block";
     }

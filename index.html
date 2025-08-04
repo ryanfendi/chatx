@@ -124,6 +124,20 @@
     });
   }
 </script>
+  
+  <button onclick="openBox(20)">🎁 Buka Gacha Box - 20 koin</button>
+
+<!-- Withdraw -->
+<button onclick="withdrawCoin()" style="position: fixed; bottom: 10px; left: 10px; z-index: 9999;">💸 Withdraw</button>
+
+<script>
+  function withdrawCoin() {
+    let amount = prompt("Masukkan jumlah koin yang ingin ditarik:");
+    if (amount && parseInt(amount) > 0) {
+      window.open(`https://wa.me/YOUR_PHONE?text=Halo%20saya%20ingin%20withdraw%20${amount}%20koin`, "_blank");
+    }
+  }
+</script>
 
 
 <!-- Menu Shop -->

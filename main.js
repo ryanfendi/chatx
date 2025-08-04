@@ -1,8 +1,11 @@
+// main.js
 const socket = io("https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev");
 
 let playerId;
 let players = {};
 let avatarType = localStorage.getItem("avatarType") || "pria";
+let coin = parseInt(localStorage.getItem("coin")) || 100;
+let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
 
 const config = {
   type: Phaser.AUTO,
@@ -29,44 +32,19 @@ function preload() {
 
 function create() {
   this.chatBubbles = {};
+  this.cursors = this.input.keyboard.createCursorKeys();
 
   socket.on("init", (id) => {
-if (inventory.includes("avatar_wanita")) {
-  avatarType = "wanita";
-  socket.emit("avatarType", avatarType);
-}
-function buyItem(item, cost) {
-  if (inventory.includes(item)) {
-    alert("Sudah dibeli!");
-    return;
-  }
-  if (coin < cost) {
-    alert("Koin tidak cukup!");
-    return;
-  }
-  coin -= cost;
-  inventory.push(item);
-  localStorage.setItem("coin", coin);
-  localStorage.setItem("inventory", JSON.stringify(inventory));
-  document.getElementById("coinCount").innerText = coin;
-  alert("Berhasil membeli: " + item);
-
-  // Jika item adalah avatar, langsung pakai
-  if (item === "avatar_wanita") {
-    localStorage.setItem("avatarType", "wanita");
-    location.reload(); // reload agar diterapkan
-  }
-}
-<p style="margin-top: 10px;">Ingin jual item kamu? <br>
-<a href="https://wa.me/6285601817789?text=Halo%20saya%20mau%20jual%20item%20di%20PixelChat" target="_blank" style="color:lime">Chat Admin 💬</a></p>
-
-    
     playerId = id;
-    socket.emit("avatarType", avatarType); // ⬅️ Kirim avatarType setelah dapat id
+    // Jika user punya avatar wanita, pakai otomatis
+    if (inventory.includes("avatar_wanita")) {
+      avatarType = "wanita";
+      localStorage.setItem("avatarType", "wanita");
+    }
+    socket.emit("avatarType", avatarType);
   });
 
   socket.on("state", (serverPlayers) => {
-    // Hapus player yang sudah keluar
     for (const id in players) {
       if (!serverPlayers[id]) {
         players[id].avatar.destroy();
@@ -108,17 +86,45 @@ function buyItem(item, cost) {
     }
   });
 
-  this.cursors = this.input.keyboard.createCursorKeys();
-
+  // Chat form
   const form = document.getElementById("chatForm");
   const input = document.getElementById("chatInput");
-
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const msg = input.value.trim();
     if (msg) {
       socket.emit("chat", msg);
       input.value = "";
+    }
+  });
+
+  // Emote keyboard
+  this.input.keyboard.on("keydown", (event) => {
+    const player = players[playerId];
+    if (!player) return;
+
+    if (event.key === "1") {
+      player.avatar.y -= 50;
+      setTimeout(() => {
+        player.avatar.y += 50;
+      }, 300);
+    }
+
+    if (event.key === "2" && inventory.includes("emote_wave")) {
+      player.avatar.setAngle(15);
+      setTimeout(() => player.avatar.setAngle(0), 300);
+    }
+
+    if (event.key === "3" && inventory.includes("emote_dance")) {
+      let i = 0;
+      const interval = setInterval(() => {
+        player.avatar.setFlipX(i % 2 === 0);
+        i++;
+        if (i > 5) {
+          clearInterval(interval);
+          player.avatar.setFlipX(false);
+        }
+      }, 100);
     }
   });
 }
@@ -140,37 +146,29 @@ function update() {
     socket.emit("move", {
       x: player.avatar.x,
       y: player.avatar.y
-
-      this.input.keyboard.on("keydown", (event) => {
-  const player = players[playerId];
-  if (!player) return;
-
-  if (event.key === "1") {
-    // Lompat (naik lalu turun)
-    player.avatar.y -= 50;
-    setTimeout(() => {
-      player.avatar.y += 50;
-    }, 300);
+    });
   }
+}
 
-  if (event.key === "2" && inventory.includes("emote_wave")) {
-    player.avatar.setAngle(15);
-    setTimeout(() => player.avatar.setAngle(0), 300);
+// Buy Item Function (dipakai di HTML juga)
+function buyItem(item, cost) {
+  if (inventory.includes(item)) {
+    alert("Sudah dibeli!");
+    return;
   }
-
-  if (event.key === "3" && inventory.includes("emote_dance")) {
-    let i = 0;
-    const interval = setInterval(() => {
-      player.avatar.setFlipX(i % 2 === 0);
-      i++;
-      if (i > 5) {
-        clearInterval(interval);
-        player.avatar.setFlipX(false);
-      }
-    }, 100);
+  if (coin < cost) {
+    alert("Koin tidak cukup!");
+    return;
   }
-});
+  coin -= cost;
+  inventory.push(item);
+  localStorage.setItem("coin", coin);
+  localStorage.setItem("inventory", JSON.stringify(inventory));
+  document.getElementById("coinCount").innerText = coin;
+  alert("Berhasil membeli: " + item);
 
-   
+  if (item === "avatar_wanita") {
+    localStorage.setItem("avatarType", "wanita");
+    location.reload();
   }
 }

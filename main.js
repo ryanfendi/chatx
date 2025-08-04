@@ -110,6 +110,37 @@ function update() {
     socket.emit("move", {
       x: player.avatar.x,
       y: player.avatar.y
-    });
+
+      this.input.keyboard.on("keydown", (event) => {
+  const player = players[playerId];
+  if (!player) return;
+
+  if (event.key === "1") {
+    // Lompat (naik lalu turun)
+    player.avatar.y -= 50;
+    setTimeout(() => {
+      player.avatar.y += 50;
+    }, 300);
+  }
+
+  if (event.key === "2" && inventory.includes("emote_wave")) {
+    player.avatar.setAngle(15);
+    setTimeout(() => player.avatar.setAngle(0), 300);
+  }
+
+  if (event.key === "3" && inventory.includes("emote_dance")) {
+    let i = 0;
+    const interval = setInterval(() => {
+      player.avatar.setFlipX(i % 2 === 0);
+      i++;
+      if (i > 5) {
+        clearInterval(interval);
+        player.avatar.setFlipX(false);
+      }
+    }, 100);
+  }
+});
+
+   
   }
 }

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChatX</title>
   <style>
     body { margin: 0; overflow: hidden; background: #222; }
     canvas { display: block; margin: auto; }
-
     #chatBox {
       position: fixed;
       bottom: 10px;
@@ -16,7 +17,6 @@
       display: flex;
       z-index: 10;
     }
-
     #chatInput {
       flex: 1;
       padding: 10px;
@@ -25,12 +25,10 @@
       border-radius: 10px;
       outline: none;
     }
-
     #chatForm {
       width: 100%;
       display: flex;
     }
-
     #chatSend {
       background-color: #4CAF50;
       color: white;
@@ -41,7 +39,6 @@
       font-size: 16px;
       cursor: pointer;
     }
-
     #avatarSelect {
       position: fixed;
       top: 30%;
@@ -53,7 +50,6 @@
       text-align: center;
       z-index: 999;
     }
-
     #avatarSelect button {
       margin: 10px;
       padding: 10px 20px;
@@ -65,14 +61,12 @@
 </head>
 <body>
 
-  <!-- Menu Pilih Avatar -->
   <div id="avatarSelect">
     <h3 style="color: white;">Pilih Avatar</h3>
     <button onclick="selectAvatar('pria')">👨 Pria</button>
     <button onclick="selectAvatar('wanita')">👩 Wanita</button>
   </div>
 
-  <!-- Chat Box Bawah -->
   <div id="chatBox">
     <form id="chatForm">
       <input type="text" id="chatInput" placeholder="Ketik pesan..." autocomplete="off" />
@@ -80,183 +74,157 @@
     </form>
   </div>
 
+  <!-- Tombol Menu -->
+  <button onclick="toggleShop()" style="position: fixed; top: 10px; right: 10px; z-index: 9999;">🛒 Shop</button>
+  <button onclick="toggleInventory()" style="position: fixed; top: 10px; right: 100px; z-index: 9999;">🎒 Inventory</button>
+  <button onclick="toggleMarket()" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">📜 Market Player</button>
+  <button onclick="withdrawCoin()" style="position: fixed; bottom: 10px; left: 10px; z-index: 9999;">💸 Withdraw</button>
+
+  <!-- Shop -->
+  <div id="shop" style="display:none; position: fixed; top: 60px; right: 10px; background: #222; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 200px;">
+    <h3>Marketplace</h3>
+    <p>Koin: <span id="coinCount">0</span></p>
+    <button onclick="buyItemShop('avatar_wanita', 50)">👩 Avatar Wanita - 50 koin</button><br><br>
+    <button onclick="buyItemShop('emote_wave', 30)">👋 Emote Wave - 30 koin</button><br><br>
+    <button onclick="buyItemShop('emote_dance', 40)">💃 Emote Dance - 40 koin</button>
+  </div>
+
+  <!-- Inventory -->
+  <div id="inventory" style="display:none; position: fixed; top: 60px; right: 100px; background: #333; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 200px;">
+    <h3>Item Kamu</h3>
+    <ul id="itemList"></ul>
+  </div>
+
+  <!-- Market Antar Pemain -->
+  <div id="marketUI" style="display:none; position: fixed; top: 60px; left: 10px; background: #222; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 220px;">
+    <h3>Market Antar Pemain</h3>
+    <ul id="marketList"></ul>
+    <hr>
+    <label>Jual Item:
+      <select id="sellItemSelect">
+        <option value="avatar_wanita">Avatar Wanita</option>
+        <option value="emote_wave">Emote Wave</option>
+        <option value="emote_dance">Emote Dance</option>
+      </select>
+    </label><br>
+    <label>Harga (koin): <input id="sellPrice" type="number" value="50" /></label><br>
+    <button onclick="sellItem()">Jual</button>
+  </div>
+
   <script>
+    let coin = parseInt(localStorage.getItem("coin")) || 100;
+    let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+    let playerId = localStorage.getItem("playerId") || "guest";
+    document.getElementById("coinCount").innerText = coin;
+
     function selectAvatar(type) {
       localStorage.setItem("avatarType", type);
       document.getElementById("avatarSelect").style.display = "none";
       location.reload();
     }
 
-    // Jika sudah pernah pilih avatar, sembunyikan
     if (localStorage.getItem("avatarType")) {
       document.getElementById("avatarSelect").style.display = "none";
+    }
+
+    function toggleShop() {
+      const shop = document.getElementById("shop");
+      shop.style.display = shop.style.display === "none" ? "block" : "none";
+    }
+
+    function toggleInventory() {
+      const inv = document.getElementById("inventory");
+      const list = document.getElementById("itemList");
+      inv.style.display = inv.style.display === "none" ? "block" : "none";
+      list.innerHTML = "";
+      inventory.forEach(item => {
+        const li = document.createElement("li");
+        li.innerText = item;
+        list.appendChild(li);
+      });
+    }
+
+    function buyItemShop(item, cost) {
+      if (inventory.includes(item)) return alert("Sudah dibeli!");
+      if (coin < cost) return alert("Koin tidak cukup!");
+      coin -= cost;
+      inventory.push(item);
+      localStorage.setItem("coin", coin);
+      localStorage.setItem("inventory", JSON.stringify(inventory));
+      document.getElementById("coinCount").innerText = coin;
+      alert("Berhasil membeli: " + item);
+    }
+
+    function withdrawCoin() {
+      let amount = prompt("Masukkan jumlah koin yang ingin ditarik:");
+      if (amount && parseInt(amount) > 0) {
+        window.open(`https://wa.me/6285601817789?text=Halo%20saya%20ingin%20withdraw%20${amount}%20koin`, "_blank");
+      }
+    }
+
+    const serverURL = "https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev";
+
+    function toggleMarket() {
+      const ui = document.getElementById("marketUI");
+      ui.style.display = ui.style.display === "none" ? "block" : "none";
+      if (ui.style.display === "block") loadMarket();
+    }
+
+    function loadMarket() {
+      fetch(serverURL + "/market")
+        .then(res => res.json())
+        .then(market => {
+          const list = document.getElementById("marketList");
+          list.innerHTML = "";
+          market.forEach(entry => {
+            const li = document.createElement("li");
+            li.innerHTML = `${entry.item} - <b>${entry.price} koin</b> <button onclick="buyItem('${entry.item}', ${entry.price})">Beli</button>`;
+            list.appendChild(li);
+          });
+        });
+    }
+
+    function sellItem() {
+      const item = document.getElementById("sellItemSelect").value;
+      const price = parseInt(document.getElementById("sellPrice").value);
+      if (!inventory.includes(item)) return alert("Kamu belum punya item ini.");
+      fetch(serverURL + "/market/sell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: playerId, item, price })
+      }).then(() => {
+        alert("Item berhasil dijual!");
+        loadMarket();
+      });
+    }
+
+    function buyItem(item, price) {
+      if (coin < price) return alert("Koin tidak cukup!");
+      fetch(serverURL + "/market/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ buyer: playerId, item })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert("Berhasil membeli: " + data.item.item);
+            inventory.push(data.item.item);
+            coin -= data.item.price;
+            localStorage.setItem("coin", coin);
+            localStorage.setItem("inventory", JSON.stringify(inventory));
+            document.getElementById("coinCount").innerText = coin;
+            loadMarket();
+          } else {
+            alert("Gagal beli item: " + data.error);
+          }
+        });
     }
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="main.js"></script>
-
-<!-- Tombol Marketplace -->
-<button onclick="toggleShop()" style="position: fixed; top: 10px; right: 10px; z-index: 9999;">🛒 Shop</button>
-  <button onclick="toggleInventory()" style="position: fixed; top: 10px; right: 100px; z-index: 9999;">🎒 Inventory</button>
-  <p style="margin-top: 10px;">Ingin jual item kamu? <br>
-<a href="https://wa.me/6285601817789?text=Halo%20saya%20mau%20jual%20item%20di%20PixelChat" target="_blank" style="color:lime">Chat Admin 💬</a></p>
-
-
-<div id="inventory" style="display:none; position: fixed; top: 60px; right: 100px; background: #333; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 200px;">
-  <h3>Item Kamu</h3>
-  <ul id="itemList"></ul>
-</div>
-
-<script>
-  function toggleInventory() {
-    const inv = document.getElementById("inventory");
-    const list = document.getElementById("itemList");
-    inv.style.display = inv.style.display === "none" ? "block" : "none";
-
-    // Tampilkan item
-    list.innerHTML = "";
-    inventory.forEach(item => {
-      const li = document.createElement("li");
-      li.innerText = item;
-      list.appendChild(li);
-    });
-  }
-</script>
-  
-  <button onclick="openBox(20)">🎁 Buka Gacha Box - 20 koin</button>
-
-<!-- Withdraw -->
-<button onclick="withdrawCoin()" style="position: fixed; bottom: 10px; left: 10px; z-index: 9999;">💸 Withdraw</button>
-
-<script>
-  function withdrawCoin() {
-    let amount = prompt("Masukkan jumlah koin yang ingin ditarik:");
-    if (amount && parseInt(amount) > 0) {
-      window.open(`https://wa.me/6285601817789?text=Halo%20saya%20ingin%20withdraw%20${amount}%20koin`, "_blank");
-    }
-  }
-</script>
-
-
-<!-- Menu Shop -->
-<div id="shop" style="display:none; position: fixed; top: 60px; right: 10px; background: #222; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 200px;">
-  <h3>Marketplace</h3>
-  <p>Koin: <span id="coinCount">0</span></p>
-  <button onclick="buyItem('avatar_wanita', 50)">👩 Avatar Wanita - 50 koin</button><br><br>
-  <button onclick="buyItem('emote_wave', 30)">👋 Emote Wave - 30 koin</button><br><br>
-  <button onclick="buyItem('emote_dance', 40)">💃 Emote Dance - 40 koin</button>
-</div>
-
-<script>
-  // Data penyimpanan
-  let coin = parseInt(localStorage.getItem("coin")) || 100;
-  let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-
-  document.getElementById("coinCount").innerText = coin;
-
-  function toggleShop() {
-    const shop = document.getElementById("shop");
-    shop.style.display = shop.style.display === "none" ? "block" : "none";
-  }
-
-  function buyItem(item, cost) {
-    if (inventory.includes(item)) {
-      alert("Sudah dibeli!");
-      return;
-    }
-    if (coin < cost) {
-      alert("Koin tidak cukup!");
-      return;
-    }
-    coin -= cost;
-    inventory.push(item);
-    localStorage.setItem("coin", coin);
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-    document.getElementById("coinCount").innerText = coin;
-    alert("Berhasil membeli: " + item);
-  }
-</script>
-  <script>
-const serverURL = "https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev";
-
-function toggleMarket() {
-  const ui = document.getElementById("marketUI");
-  ui.style.display = ui.style.display === "none" ? "block" : "none";
-  if (ui.style.display === "block") loadMarket();
-}
-
-function loadMarket() {
-  fetch(serverURL + "/market")
-    .then(res => res.json())
-    .then(market => {
-      const list = document.getElementById("marketList");
-      list.innerHTML = "";
-      market.forEach(entry => {
-        const li = document.createElement("li");
-        li.innerHTML = `${entry.item} - <b>${entry.price} koin</b> <button onclick="buyItem('${entry.item}', ${entry.price})">Beli</button>`;
-        list.appendChild(li);
-      });
-    });
-}
-
-function sellItem() {
-  const item = document.getElementById("sellItemSelect").value;
-  const price = parseInt(document.getElementById("sellPrice").value);
-
-  if (!inventory.includes(item)) return alert("Kamu belum punya item ini.");
-  
-  fetch(serverURL + "/market/sell", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: playerId, item, price })
-  }).then(() => {
-    alert("Item berhasil dijual!");
-    loadMarket();
-  });
-}
-
-function buyItem(item, price) {
-  if (coin < price) return alert("Koin tidak cukup!");
-  
-  fetch(serverURL + "/market/buy", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ buyer: playerId, item })
-  }).then(res => res.json()).then(data => {
-    if (data.success) {
-      alert("Berhasil membeli: " + data.item.item);
-      inventory.push(data.item.item);
-      coin -= data.item.price;
-      localStorage.setItem("coin", coin);
-      localStorage.setItem("inventory", JSON.stringify(inventory));
-      document.getElementById("coinCount").innerText = coin;
-      loadMarket();
-    } else {
-      alert("Gagal beli item: " + data.error);
-    }
-  });
-}
-</script>
-
-<!-- 🧠 RMT Marketplace Antar Pemain -->
-<button onclick="toggleMarket()" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">🧾 Market Player</button>
-
-<div id="marketUI" style="display:none; position: fixed; top: 60px; left: 10px; background: #222; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 220px;">
-  <h3>Market Antar Pemain</h3>
-  <ul id="marketList"></ul>
-  <hr>
-  <label>Jual Item:
-    <select id="sellItemSelect">
-      <option value="avatar_wanita">Avatar Wanita</option>
-      <option value="emote_wave">Emote Wave</option>
-      <option value="emote_dance">Emote Dance</option>
-    </select>
-  </label><br>
-  <label>Harga (koin): <input id="sellPrice" type="number" value="50" /></label><br>
-  <button onclick="sellItem()">Jual</button>
-</div>
 
 </body>
 </html>

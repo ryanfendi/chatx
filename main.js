@@ -1,4 +1,3 @@
-// main.js
 const socket = io("https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev");
 
 let playerId;
@@ -9,8 +8,6 @@ let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
 let playerName = localStorage.getItem("playerName") || prompt("Masukkan nama kamu:") || "Anonim";
 localStorage.setItem("playerName", playerName);
 
-document.getElementById("coinCount")?.innerText = coin;
-
 const config = {
   type: Phaser.AUTO,
   width: 800,
@@ -20,11 +17,7 @@ const config = {
     default: "arcade",
     arcade: { gravity: { y: 0 } }
   },
-  scene: {
-    preload,
-    create,
-    update
-  }
+  scene: { preload, create, update }
 };
 
 const game = new Phaser.Game(config);
@@ -40,10 +33,14 @@ function create() {
   this.nameTags = {};
   this.cursors = this.input.keyboard.createCursorKeys();
 
-  socket.emit("join", { name: playerName, avatarType });
-
   socket.on("init", (id) => {
     playerId = id;
+    if (inventory.includes("avatar_wanita")) {
+      avatarType = "wanita";
+      localStorage.setItem("avatarType", "wanita");
+    }
+    socket.emit("avatarType", avatarType);
+    socket.emit("playerName", playerName);
   });
 
   socket.on("state", (serverPlayers) => {
@@ -58,9 +55,9 @@ function create() {
 
     for (const id in serverPlayers) {
       const data = serverPlayers[id];
+      const avatarImg = ["pria", "wanita"].includes(data.avatarType) ? data.avatarType : "pria";
 
       if (!players[id]) {
-        const avatarImg = data.avatarType || "pria";
         const avatar = this.add.sprite(data.x, data.y, avatarImg).setScale(2);
         const bubble = this.add.text(data.x, data.y - 40, "", {
           font: "16px Arial",
@@ -74,7 +71,7 @@ function create() {
           fill: "#0f0"
         }).setOrigin(0.5);
 
-        players[id] = { avatar, bubble };
+        players[id] = { avatar, bubble, avatarType: data.avatarType };
         this.nameTags[id] = nameTag;
       } else {
         players[id].avatar.x = data.x;
@@ -158,28 +155,6 @@ function update() {
   }
 }
 
-function buyItem(item, cost) {
-  if (inventory.includes(item)) {
-    alert("Sudah dibeli!");
-    return;
-  }
-  if (coin < cost) {
-    alert("Koin tidak cukup!");
-    return;
-  }
-  coin -= cost;
-  inventory.push(item);
-  localStorage.setItem("coin", coin);
-  localStorage.setItem("inventory", JSON.stringify(inventory));
-  document.getElementById("coinCount").innerText = coin;
-  alert("Berhasil membeli: " + item);
-
-  if (item === "avatar_wanita") {
-    localStorage.setItem("avatarType", "wanita");
-    location.reload();
-  }
-}
-
 function openBox(cost) {
   if (coin < cost) {
     alert("Koin tidak cukup!");
@@ -187,7 +162,7 @@ function openBox(cost) {
   }
 
   coin -= cost;
-  document.getElementById("coinCount").innerText = coin;
+  document.getElementById("coinCount")?.innerText = coin;
   localStorage.setItem("coin", coin);
 
   const rewards = ["emote_wave", "emote_dance", "avatar_wanita"];

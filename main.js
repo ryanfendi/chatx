@@ -31,6 +31,34 @@ function create() {
   this.chatBubbles = {};
 
   socket.on("init", (id) => {
+if (inventory.includes("avatar_wanita")) {
+  avatarType = "wanita";
+  socket.emit("avatarType", avatarType);
+}
+function buyItem(item, cost) {
+  if (inventory.includes(item)) {
+    alert("Sudah dibeli!");
+    return;
+  }
+  if (coin < cost) {
+    alert("Koin tidak cukup!");
+    return;
+  }
+  coin -= cost;
+  inventory.push(item);
+  localStorage.setItem("coin", coin);
+  localStorage.setItem("inventory", JSON.stringify(inventory));
+  document.getElementById("coinCount").innerText = coin;
+  alert("Berhasil membeli: " + item);
+
+  // Jika item adalah avatar, langsung pakai
+  if (item === "avatar_wanita") {
+    localStorage.setItem("avatarType", "wanita");
+    location.reload(); // reload agar diterapkan
+  }
+}
+
+    
     playerId = id;
     socket.emit("avatarType", avatarType); // ⬅️ Kirim avatarType setelah dapat id
   });

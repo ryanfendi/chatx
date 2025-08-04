@@ -178,6 +178,68 @@
     alert("Berhasil membeli: " + item);
   }
 </script>
+  <script>
+const serverURL = "https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev";
+
+function toggleMarket() {
+  const ui = document.getElementById("marketUI");
+  ui.style.display = ui.style.display === "none" ? "block" : "none";
+  if (ui.style.display === "block") loadMarket();
+}
+
+function loadMarket() {
+  fetch(serverURL + "/market")
+    .then(res => res.json())
+    .then(market => {
+      const list = document.getElementById("marketList");
+      list.innerHTML = "";
+      market.forEach(entry => {
+        const li = document.createElement("li");
+        li.innerHTML = `${entry.item} - <b>${entry.price} koin</b> <button onclick="buyItem('${entry.item}', ${entry.price})">Beli</button>`;
+        list.appendChild(li);
+      });
+    });
+}
+
+function sellItem() {
+  const item = document.getElementById("sellItemSelect").value;
+  const price = parseInt(document.getElementById("sellPrice").value);
+
+  if (!inventory.includes(item)) return alert("Kamu belum punya item ini.");
+  
+  fetch(serverURL + "/market/sell", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: playerId, item, price })
+  }).then(() => {
+    alert("Item berhasil dijual!");
+    loadMarket();
+  });
+}
+
+function buyItem(item, price) {
+  if (coin < price) return alert("Koin tidak cukup!");
+  
+  fetch(serverURL + "/market/buy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ buyer: playerId, item })
+  }).then(res => res.json()).then(data => {
+    if (data.success) {
+      alert("Berhasil membeli: " + data.item.item);
+      inventory.push(data.item.item);
+      coin -= data.item.price;
+      localStorage.setItem("coin", coin);
+      localStorage.setItem("inventory", JSON.stringify(inventory));
+      document.getElementById("coinCount").innerText = coin;
+      loadMarket();
+    } else {
+      alert("Gagal beli item: " + data.error);
+    }
+  });
+}
+</script>
+
 <!-- 🧠 RMT Marketplace Antar Pemain -->
 <button onclick="toggleMarket()" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">🧾 Market Player</button>
 

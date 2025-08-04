@@ -30,7 +30,7 @@ const game = new Phaser.Game(config);
 function preload() {
   this.load.image("pria", "https://i.imgur.com/uQaaapA.png");
   this.load.image("wanita", "https://i.imgur.com/bMolfpy.png");
-  this.load.image("gachaBox", "https://i.imgur.com/lpIlr0E.png"); // Icon gacha box
+  this.load.image("gachaBox", "https://i.imgur.com/lpIlr0E.png");
 }
 
 function create() {
@@ -135,7 +135,6 @@ function create() {
     }
   });
 
-  // Gacha animasi sederhana
   const gacha = this.add.image(60, 550, "gachaBox").setInteractive().setScale(0.5);
   gacha.on("pointerdown", () => openBox(20));
 }

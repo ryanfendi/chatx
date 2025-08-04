@@ -57,6 +57,8 @@ function buyItem(item, cost) {
     location.reload(); // reload agar diterapkan
   }
 }
+<p style="margin-top: 10px;">Ingin jual item kamu? <br>
+<a href="https://wa.me/6285601817789?text=Halo%20saya%20mau%20jual%20item%20di%20PixelChat" target="_blank" style="color:lime">Chat Admin 💬</a></p>
 
     
     playerId = id;

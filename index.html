@@ -96,5 +96,48 @@
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="main.js"></script>
+
+<!-- Tombol Marketplace -->
+<button onclick="toggleShop()" style="position: fixed; top: 10px; right: 10px; z-index: 9999;">🛒 Shop</button>
+
+<!-- Menu Shop -->
+<div id="shop" style="display:none; position: fixed; top: 60px; right: 10px; background: #222; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 200px;">
+  <h3>Marketplace</h3>
+  <p>Koin: <span id="coinCount">0</span></p>
+  <button onclick="buyItem('avatar_wanita', 50)">👩 Avatar Wanita - 50 koin</button><br><br>
+  <button onclick="buyItem('emote_wave', 30)">👋 Emote Wave - 30 koin</button><br><br>
+  <button onclick="buyItem('emote_dance', 40)">💃 Emote Dance - 40 koin</button>
+</div>
+
+<script>
+  // Data penyimpanan
+  let coin = parseInt(localStorage.getItem("coin")) || 100;
+  let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+
+  document.getElementById("coinCount").innerText = coin;
+
+  function toggleShop() {
+    const shop = document.getElementById("shop");
+    shop.style.display = shop.style.display === "none" ? "block" : "none";
+  }
+
+  function buyItem(item, cost) {
+    if (inventory.includes(item)) {
+      alert("Sudah dibeli!");
+      return;
+    }
+    if (coin < cost) {
+      alert("Koin tidak cukup!");
+      return;
+    }
+    coin -= cost;
+    inventory.push(item);
+    localStorage.setItem("coin", coin);
+    localStorage.setItem("inventory", JSON.stringify(inventory));
+    document.getElementById("coinCount").innerText = coin;
+    alert("Berhasil membeli: " + item);
+  }
+</script>
+
 </body>
 </html>

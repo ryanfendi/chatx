@@ -1,9 +1,8 @@
+const socket = io("https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev");
+
 let playerId;
 let players = {};
 let avatarType = localStorage.getItem("avatarType") || "pria";
-
-// Kirim avatarType ke server
-socket.emit("avatarType", avatarType);
 
 const config = {
   type: Phaser.AUTO,
@@ -31,13 +30,21 @@ function preload() {
 function create() {
   this.chatBubbles = {};
 
- socket.on("init", (id) => {
-  playerId = id;
-  socket.emit("avatarType", avatarType); // PENTING!
-});
-
+  socket.on("init", (id) => {
+    playerId = id;
+    socket.emit("avatarType", avatarType); // ⬅️ Kirim avatarType setelah dapat id
+  });
 
   socket.on("state", (serverPlayers) => {
+    // Hapus player yang sudah keluar
+    for (const id in players) {
+      if (!serverPlayers[id]) {
+        players[id].avatar.destroy();
+        players[id].bubble.destroy();
+        delete players[id];
+      }
+    }
+
     for (const id in serverPlayers) {
       const data = serverPlayers[id];
 
@@ -101,9 +108,8 @@ function update() {
 
   if (moved) {
     socket.emit("move", {
-  x: player.avatar.x,
-  y: player.avatar.y
-});
-
+      x: player.avatar.x,
+      y: player.avatar.y
+    });
   }
 }

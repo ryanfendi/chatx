@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ChatX</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #222; }
+    body { margin: 0; overflow: hidden; background: #222; color: white; }
     canvas { display: block; margin: auto; }
     #chatBox {
       position: fixed;
@@ -69,16 +69,33 @@
       padding: 5px 10px;
       border-radius: 8px;
     }
+    #coinDisplay {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: #000;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Coin Display -->
+  <div id="coinDisplay">💰 Koin: <span id="coinCount">0</span></div>
+
+  <!-- Avatar Selection -->
   <div id="avatarSelect">
     <h3 style="color: white;">Pilih Avatar</h3>
     <button onclick="selectAvatar('pria')">👨 Pria</button>
     <button onclick="selectAvatar('wanita')">👩 Wanita</button>
   </div>
 
+  <!-- Chat UI -->
   <div id="chatBox">
     <form id="chatForm">
       <input type="text" id="chatInput" placeholder="Ketik pesan..." autocomplete="off" />
@@ -86,14 +103,16 @@
     </form>
   </div>
 
+  <!-- Tombol UI -->
   <button onclick="toggleShop()" style="position: fixed; top: 10px; right: 10px; z-index: 9999;">🛒 Shop</button>
   <button onclick="toggleInventory()" style="position: fixed; top: 10px; right: 100px; z-index: 9999;">🎒 Inventory</button>
-  <button onclick="toggleMarket()" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">📜 Market Player</button>
+  <button onclick="toggleMarket()" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">📜 Market</button>
   <button onclick="withdrawCoin()" style="position: fixed; bottom: 10px; left: 10px; z-index: 9999;">💸 Withdraw</button>
   <button onclick="buyCoinQRIS()" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">💳 Beli Koin</button>
   <button onclick="toggleGachaBox()" style="position: fixed; bottom: 60px; right: 10px; z-index: 9999;">🎮 Gacha</button>
   <button onclick="viewProfile()" style="position: fixed; bottom: 60px; left: 10px; z-index: 9999;">🧑‍⚖️ Profil</button>
 
+  <!-- Gacha Modal -->
   <div id="gachaModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#111; color:white; padding:20px; border-radius:10px; z-index:9999; text-align:center;">
     <h3>Gacha Box</h3>
     <p>20 koin per gacha</p>
@@ -101,6 +120,7 @@
     <div id="gachaResult" style="margin-top:10px; font-size:18px;"></div>
   </div>
 
+  <!-- Profile UI -->
   <div id="profileUI" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#333; color:white; padding:20px; border-radius:10px; z-index:9999;">
     <h3>Profil Kamu</h3>
     <p>ID: <span id="profileId"></span></p>
@@ -109,9 +129,16 @@
     <button onclick="document.getElementById('profileUI').style.display='none'">Tutup</button>
   </div>
 
-  <div id="emoteLabel">[1] Wave | [2] Dance</div>
+  <div id="emoteLabel">[1] Lompat | [2] Wave | [3] Dance</div>
 
   <script>
+    // Inisialisasi variabel dari localStorage
+    let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+    let coin = parseInt(localStorage.getItem("coin")) || 100;
+    let playerId = null;
+
+    document.getElementById("coinCount").innerText = coin;
+
     function selectAvatar(type) {
       localStorage.setItem("avatarType", type);
       document.getElementById("avatarSelect").style.display = "none";
@@ -122,35 +149,43 @@
       document.getElementById("avatarSelect").style.display = "none";
     }
 
-    function toggleGachaBox() {
-      document.getElementById("gachaModal").style.display = "block";
-    }
     function runGacha() {
       if (coin < 20) return alert("Koin tidak cukup!");
       coin -= 20;
       localStorage.setItem("coin", coin);
       document.getElementById("coinCount").innerText = coin;
+
       const rewards = ["emote_wave", "emote_dance", "avatar_wanita"];
       const reward = rewards[Math.floor(Math.random() * rewards.length)];
       inventory.push(reward);
       localStorage.setItem("inventory", JSON.stringify(inventory));
       document.getElementById("gachaResult").innerText = "Kamu mendapat: " + reward;
     }
+
     function viewProfile() {
-      document.getElementById("profileId").innerText = playerId;
+      document.getElementById("profileId").innerText = playerId || "(belum terhubung)";
       document.getElementById("profileAvatar").innerText = localStorage.getItem("avatarType");
       document.getElementById("profileItems").innerText = inventory.join(", ");
       document.getElementById("profileUI").style.display = "block";
     }
+
+    function toggleGachaBox() {
+      document.getElementById("gachaModal").style.display = "block";
+    }
+
     function buyCoinQRIS() {
       alert("Untuk beli koin, silakan hubungi admin melalui WA");
       window.open("https://wa.me/6285601817789?text=Halo%20saya%20mau%20beli%20koin%20via%20QRIS", "_blank");
     }
+
+    function toggleShop() { alert("Fitur shop belum tersedia."); }
+    function toggleInventory() { alert("Fitur inventory belum tersedia."); }
+    function toggleMarket() { alert("Fitur market belum tersedia."); }
+    function withdrawCoin() { alert("Silakan hubungi admin untuk withdraw."); }
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="main.js"></script>
-
 </body>
 </html>

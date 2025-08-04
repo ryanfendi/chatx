@@ -1,8 +1,9 @@
-const socket = io("https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev");
-
 let playerId;
 let players = {};
 let avatarType = localStorage.getItem("avatarType") || "pria";
+
+// Kirim avatarType ke server
+socket.emit("avatarType", avatarType);
 
 const config = {
   type: Phaser.AUTO,
@@ -39,7 +40,8 @@ function create() {
       const data = serverPlayers[id];
 
       if (!players[id]) {
-        const avatar = this.add.sprite(data.x, data.y, avatarType).setScale(2);
+        const avatarImg = data.avatarType || "pria";
+        const avatar = this.add.sprite(data.x, data.y, avatarImg).setScale(2);
         const bubble = this.add.text(data.x, data.y - 40, "", {
           font: "16px Arial",
           fill: "#fff",
@@ -98,7 +100,8 @@ function update() {
   if (moved) {
     socket.emit("move", {
       x: player.avatar.x,
-      y: player.avatar.y
+      y: player.avatar.y,
+      avatarType: avatarType
     });
   }
 }

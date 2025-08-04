@@ -178,6 +178,23 @@
     alert("Berhasil membeli: " + item);
   }
 </script>
+<!-- 🧠 RMT Marketplace Antar Pemain -->
+<button onclick="toggleMarket()" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">🧾 Market Player</button>
+
+<div id="marketUI" style="display:none; position: fixed; top: 60px; left: 10px; background: #222; color: white; padding: 10px; border-radius: 10px; z-index:9999; width: 220px;">
+  <h3>Market Antar Pemain</h3>
+  <ul id="marketList"></ul>
+  <hr>
+  <label>Jual Item:
+    <select id="sellItemSelect">
+      <option value="avatar_wanita">Avatar Wanita</option>
+      <option value="emote_wave">Emote Wave</option>
+      <option value="emote_dance">Emote Dance</option>
+    </select>
+  </label><br>
+  <label>Harga (koin): <input id="sellPrice" type="number" value="50" /></label><br>
+  <button onclick="sellItem()">Jual</button>
+</div>
 
 </body>
 </html>

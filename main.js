@@ -1,7 +1,8 @@
-const socket = io("https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev/"); // GANTI URL INI
+const socket = io("https://c62ece58-3908-4b24-8998-bbb028287830-00-13wz9yilxc66m.pike.replit.dev");
 
 let playerId;
 let players = {};
+let avatarType = localStorage.getItem("avatarType") || "pria";
 
 const config = {
   type: Phaser.AUTO,
@@ -22,17 +23,12 @@ const config = {
 const game = new Phaser.Game(config);
 
 function preload() {
-  this.load.image("avatar", "https://i.imgur.com/hyNa6eE.png");
+  this.load.image("pria", "https://i.imgur.com/uQaaapA.png");
+  this.load.image("wanita", "https://i.imgur.com/bMolfpy.png");
 }
 
 function create() {
-  this.otherPlayers = this.add.group();
   this.chatBubbles = {};
-
-  this.input.keyboard.on("keydown-ENTER", () => {
-    const msg = prompt("Tulis pesan:");
-    if (msg) socket.emit("chat", msg);
-  });
 
   socket.on("init", (id) => {
     playerId = id;
@@ -43,7 +39,7 @@ function create() {
       const data = serverPlayers[id];
 
       if (!players[id]) {
-        const avatar = this.add.sprite(data.x, data.y, "avatar").setScale(2);
+        const avatar = this.add.sprite(data.x, data.y, avatarType).setScale(2);
         const bubble = this.add.text(data.x, data.y - 40, "", {
           font: "16px Arial",
           fill: "#fff",
@@ -72,6 +68,18 @@ function create() {
   });
 
   this.cursors = this.input.keyboard.createCursorKeys();
+
+  const form = document.getElementById("chatForm");
+  const input = document.getElementById("chatInput");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const msg = input.value.trim();
+    if (msg) {
+      socket.emit("chat", msg);
+      input.value = "";
+    }
+  });
 }
 
 function update() {
